@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BVG Ticket Kiosk v3.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bvg-yellow: #FFCC00;
+            --bvg-dark: #333333;
+            --bvg-light: #F5F5F5;
+            --bvg-gray: #666666;
+            --bvg-success: #4CAF50;
+            --bvg-error: #F44336;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .kiosk-container {
+            width: 1000px;
+            height: 750px;
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        /* HEADER WITH BVG LOGO */
+        .kiosk-header {
+            background: var(--bvg-yellow);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 5px solid var(--bvg-dark);
+            position: relative;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .bvg-logo {
+            height: 50px;
+            width: auto;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
+        }
+        
+        .logo-text {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--bvg-dark);
+            letter-spacing: 1px;
+        }
+        
+        .kiosk-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--bvg-dark);
+        }
+        
+        .kiosk-version {
+            color: var(--bvg-dark);
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* MAIN CONTENT AREA */
+        .screen-container {
+            flex: 1;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .screen {
+            flex: 1;
+            padding: 40px;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        .screen-title {
+            font-size: 32px;
+            color: var(--bvg-dark);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--bvg-yellow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .screen-title i {
+            color: var(--bvg-yellow);
+            font-size: 28px;
+        }
+        
+        /* LANGUAGE SELECTION */
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .language-btn {
+            padding: 30px 20px;
+            background: var(--bvg-light);
+            border: 3px solid var(--bvg-gray);
+            border-radius: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .language-btn:hover {
+            background: var(--bvg-yellow);
+            border-color: var(--bvg-dark);
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .language-btn .flag {
+            font-size: 32px;
+        }
+        
+        /* ZONE SELECTION */
+        .zone-selection {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .zone-card {
+            padding: 30px 20px;
+            border: 3px solid var(--bvg-gray);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .zone-card:hover {
+            border-color: var(--bvg-yellow);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .zone-card.selected {
+            border-color: var(--bvg-yellow);
+            background: rgba(255, 204, 0, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .zone-label {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--bvg-dark);
+            background: var(--bvg-yellow);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        
+        .zone-desc {
+            color: var(--bvg-gray);
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 60px;
+        }
+        
+        .zone-price {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--bvg-dark);
+            background: var(--bvg-light);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        /* TICKET SELECTION */
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .ticket-card {
+            padding: 25px;
+            border: 3px solid var(--bvg-gray);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .ticket-card:hover {
+            border-color: var(--bvg-yellow);
+            transform: translateY(-3px);
+        }
+        
+        .ticket-card.selected {
+            border-color: var(--bvg-yellow);
+            background: rgba(255, 204, 0, 0.1);
+        }
+        
+        .ticket-type {
+            font-weight: bold;
+            font-size: 22px;
+            color: var(--bvg-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ticket-price {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--bvg-dark);
+        }
+        
+        .ticket-desc {
+            color: var(--bvg-gray);
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        /* BICYCLE OPTION */
+        .bicycle-option {
+            background: var(--bvg-light);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px dashed var(--bvg-gray);
+        }
+        
+        .bicycle-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .bicycle-icon {
+            font-size: 40px;
+            color: var(--bvg-dark);
+        }
+        
+        /* SUMMARY */
+        .summary-box {
+            background: var(--bvg-light);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid var(--bvg-yellow);
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 18px;
+        }
+        
+        .summary-total {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--bvg-dark);
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        /* PAYMENT */
+        .payment-method {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .payment-btn {
+            padding: 40px 20px;
+            border: 3px solid var(--bvg-gray);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .payment-btn:hover {
+            border-color: var(--bvg-yellow);
+            transform: translateY(-5px);
+            background: rgba(255, 204, 0, 0.05);
+        }
+        
+        .payment-btn.selected {
+            border-color: var(--bvg-yellow);
+            background: rgba(255, 204, 0, 0.1);
+        }
+        
+        .payment-icon {
+            font-size: 48px;
+        }
+        
+        /* CURRENT SELECTION DISPLAY */
+        .current-selection {
+            background: var(--bvg-yellow);
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 3px 10px rgba(255, 204, 0, 0.3);
+        }
+        
+        /* ACTION BUTTONS */
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid var(--bvg-light);
+        }
+        
+        .btn {
+            padding: 18px 35px;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: var(--bvg-yellow);
+            color: var(--bvg-dark);
+            flex: 2;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #FFD633;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 204, 0, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: var(--bvg-light);
+            color: var(--bvg-dark);
+            border: 2px solid var(--bvg-gray);
+            flex: 1;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-3px);
+        }
+        
+        /* PROCESSING SCREEN */
+        .processing {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .spinner {
+            width: 100px;
+            height: 100px;
+            border: 10px solid var(--bvg-light);
+            border-top: 10px solid var(--bvg-yellow);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 40px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* SUCCESS SCREEN */
+        .success-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+            padding: 40px;
+        }
+        
+        .success-icon {
+            font-size: 100px;
+            color: var(--bvg-success);
+            margin-bottom: 30px;
+            animation: bounce 1s ease infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .ticket-receipt {
+            background: white;
+            border: 3px solid var(--bvg-yellow);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            width: 80%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* ERROR SCREEN */
+        .error-screen {
+            background: rgba(244, 67, 54, 0.1);
+            border: 3px solid var(--bvg-error);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .error-icon {
+            font-size: 60px;
+            color: var(--bvg-error);
+            margin-bottom: 20px;
+        }
+        
+        /* PROGRESS INDICATOR */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: var(--bvg-light);
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+        
+        .step.active {
+            opacity: 1;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bvg-gray);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .step.active .step-circle {
+            background: var(--bvg-yellow);
+            color: var(--bvg-dark);
+        }
+        
+        .step-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--bvg-dark);
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1100px) {
+            .kiosk-container {
+                width: 95%;
+                height: auto;
+                min-height: 90vh;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .zone-selection,
+            .language-grid,
+            .ticket-grid,
+            .payment-method {
+                grid-template-columns: 1fr;
+            }
+            
+            .screen {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- HEADER WITH BVG LOGO -->
+        <div class="kiosk-header">
+            <div class="logo-container">
+                <div class="bvg-logo">🚇</div>
+                <div class="logo-text">BVG</div>
+            </div>
+            <div class="kiosk-title">Berliner Verkehrsbetriebe</div>
+            <div class="kiosk-version">Ticket System v3.0</div>
+        </div>
+        
+        <!-- PROGRESS STEPS -->
+        <div class="progress-steps">
+            <div class="step active" id="step1">
+                <div class="step-circle">1</div>
+                <div class="step-name">Language</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-circle">2</div>
+                <div class="step-name">Zone</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-circle">3</div>
+                <div class="step-name">Ticket</div>
+            </div>
+            <div class="step" id="step4">
+                <div class="step-circle">4</div>
+                <div class="step-name">Summary</div>
+            </div>
+            <div class="step" id="step5">
+                <div class="step-circle">5</div>
+                <div class="step-name">Payment</div>
+            </div>
+        </div>
+        
+        <!-- SCREEN CONTAINER -->
+        <div class="screen-container">
+            
+            <!-- SCREEN 1: LANGUAGE SELECTION -->
+            <div class="screen active" id="screen-language">
+                <h2 class="screen-title">
+                    <i class="fas fa-globe-europe"></i>
+                    Select Your Language / Wählen Sie Ihre Sprache
+                </h2>
+                <p style="color: var(--bvg-gray); font-size: 18px; margin-bottom: 20px;">
+                    Please choose your preferred language for the ticket purchase process.
+                </p>
+                
+                <div class="language-grid">
+                    <div class="language-btn" onclick="selectLanguage('DE')">
+                        <div class="flag">🇩🇪</div>
+                        <strong>DEUTSCH</strong>
+                        <span>German</span>
+                    </div>
+                    <div class="language-btn" onclick="selectLanguage('EN')">
+                        <div class="flag">🇬🇧</div>
+                        <strong>ENGLISH</strong>
+                        <span>English</span>
+                    </div>
+                    <div class="language-btn" onclick="selectLanguage('PL')">
+                        <div class="flag">🇵🇱</div>
+                        <strong>POLSKI</strong>
+                        <span>Polish</span>
+                    </div>
+                    <div class="language-btn" onclick="selectLanguage('ES')">
+                        <div class="flag">🇪🇸</div>
+                        <strong>ESPAÑOL</strong>
+                        <span>Spanish</span>
+                    </div>
+                    <div class="language-btn" onclick="selectLanguage('FR')">
+                        <div class="flag">🇫🇷</div>
+                        <strong>FRANÇAIS</strong>
+                        <span>French</span>
+                    </div>
+                    <div class="language-btn" onclick="selectLanguage('TR')">
+                        <div class="flag">🇹🇷</div>
+                        <strong>TÜRKÇE</strong>
+                        <span>Turkish</span>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="resetKiosk()">
+                        <i class="fas fa-redo"></i>
+                        Start Over
+                    </button>
+                    <button class="btn btn-primary" id="language-continue" onclick="goToZone()">
+                        Continue
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- SCREEN 2: ZONE SELECTION -->
+            <div class="screen" id="screen-zone">
+                <h2 class="screen-title">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Select Travel Zone
+                </h2>
+                <p style="color: var(--bvg-gray); font-size: 18px; margin-bottom: 20px;">
+                    Choose the area where you will be traveling. The price depends on the selected zone.
+                </p>
+                
+                <div class="current-selection" id="zone-selection-display">
+                    <i class="fas fa-language"></i>
+                    Selected Language: <span id="current-language">ENGLISH</span>
+                </div>
+                
+                <div class="zone-selection">
+                    <div class="zone-card" onclick="selectZone('AB')">
+                        <div class="zone-label">ZONE AB</div>
+                        <div class="zone-desc">
+                            Berlin City Center<br>
+                            Includes all inner city transport: U-Bahn, S-Bahn, buses, trams
+                        </div>
+                        <div class="zone-price">Single Ticket: €3.80</div>
+                    </div>
+                    <div class="zone-card" onclick="selectZone('BC')">
+                        <div class="zone-label">ZONE BC</div>
+                        <div class="zone-desc">
+                            Outer Districts<br>
+                            Travel from city border to outskirts. Perfect for suburban travel.
+                        </div>
+                        <div class="zone-price">Single Ticket: €4.40</div>
+                    </div>
+                    <div class="zone-card" onclick="selectZone('ABC')">
+                        <div class="zone-label">ZONE ABC</div>
+                        <div class="zone-desc">
+                            Full Network + Airport<br>
+                            Includes all zones plus BER Berlin Brandenburg Airport.
+                        </div>
+                        <div class="zone-price">Single Ticket: €4.80</div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToLanguage()">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <button class="btn btn-primary" id="zone-continue-btn" onclick="goToTicket()" disabled>
+                        Continue
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- SCREEN 3: TICKET SELECTION -->
+            <div class="screen" id="screen-ticket">
+                <h2 class="screen-title">
+                    <i class="fas fa-ticket-alt"></i>
+                    Select Ticket Type
+                </h2>
+                
+                <div class="current-selection">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Selected Zone: <span id="current-zone-display">AB</span>
+                    • 
+                    <i class="fas fa-language"></i>
+                    Language: <span id="current-language-display">EN</span>
+                </div>
+                
+                <div class="ticket-grid">
+                    <div class="ticket-card" onclick="selectTicket('single')">
+                        <div class="ticket-type">
+                            <i class="fas fa-user"></i>
+                            Single Ticket
+                        </div>
+                        <div class="ticket-price" id="price-single">€3.80</div>
+                        <div class="ticket-desc">
+                            Valid for 2 hours in one direction. Perfect for one-way journeys.
+                        </div>
+                    </div>
+                    <div class="ticket-card" onclick="selectTicket('short')">
+                        <div class="ticket-type">
+                            <i class="fas fa-walking"></i>
+                            Short Trip
+                        </div>
+                        <div class="ticket-price">€2.60</div>
+                        <div class="ticket-desc">
+                            Up to 3 stations, valid for 20 minutes. For very short distances.
+                        </div>
+                    </div>
+                    <div class="ticket-card" onclick="selectTicket('day')">
+                        <div class="ticket-type">
+                            <i class="fas fa-calendar-day"></i>
+                            Day Ticket
+                        </div>
+                        <div class="ticket-price" id="price-day">€9.90</div>
+                        <div class="ticket-desc">
+                            Unlimited travel until 3 AM next day. Perfect for tourists.
+                        </div>
+                    </div>
+                    <div class="ticket-card" onclick="selectTicket('extension')">
+                        <div class="ticket-type">
+                            <i class="fas fa-expand-alt"></i>
+                            Extension
+                        </div>
+                        <div class="ticket-price">€2.30</div>
+                        <div class="ticket-desc">
+                            Zone extension for existing ticket. Add zones to your current ticket.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- BICYCLE OPTION -->
+                <div class="bicycle-option">
+                    <div class="bicycle-info">
+                        <div class="bicycle-icon">🚲</div>
+                        <div>
+                            <strong style="font-size: 20px;">Add Bicycle Ticket?</strong>
+                            <div style="color: var(--bvg-gray); margin-top: 5px;">
+                                Valid for taking one bicycle on all transport modes
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 16px; color: var(--bvg-gray);">Additional:</div>
+                        <div style="font-size: 24px; font-weight: bold; color: var(--bvg-dark);">€2.20</div>
+                        <button class="btn btn-secondary" id="bicycle-btn" onclick="toggleBicycle()" style="padding: 10px 20px; margin-top: 10px;">
+                            <i class="fas fa-plus"></i>
+                            Add Bicycle
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToZone()">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <button class="btn btn-primary" id="ticket-continue-btn" onclick="goToSummary()" disabled>
+                        Continue to Summary
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- SCREEN 4: PRICE SUMMARY -->
+            <div class="screen" id="screen-summary">
+                <h2 class="screen-title">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    Order Summary
+                </h2>
+                
+                <div class="current-selection">
+                    <i class="fas fa-clipboard-check"></i>
+                    Review your order before payment
+                </div>
+                
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span>Ticket Type:</span>
+                        <span id="summary-ticket-type">Single Ticket</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Zone:</span>
+                        <span id="summary-zone">AB</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Base Price:</span>
+                        <span id="summary-base-price">€3.80</span>
+                    </div>
+                    <div class="summary-row" id="bicycle-summary-row" style="display: none;">
+                        <span>Bicycle Ticket:</span>
+                        <span>+ €2.20</span>
+                    </div>
+                    <div class="summary-row" style="border-bottom: 2px solid var(--bvg-yellow); padding-bottom: 20px;">
+                        <span>Validity:</span>
+                        <span id="summary-validity">2 hours, one direction</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total Amount:</span>
+                        <span id="summary-total">€3.80</span>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToTicket()">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <button class="btn btn-primary" onclick="goToPayment()">
+                        Continue to Payment
+                        <i class="fas fa-credit-card"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- SCREEN 5: PAYMENT METHOD -->
+            <div class="screen" id="screen-payment">
+                <h2 class="screen-title">
+                    <i class="fas fa-credit-card"></i>
+                    Select Payment Method
+                </h2>
+                
+                <div class="current-selection">
+                    <i class="fas fa-euro-sign"></i>
+                    Total to pay: <span id="payment-total">€3.80</span>
+                </div>
+                
+                <div class="payment-method">
+                    <div class="payment-btn" id="card-payment" onclick="selectPayment('card')">
+                        <div class="payment-icon">💳</div>
+                        <div>
+                            <strong style="font-size: 24px;">Card Payment</strong><br>
+                            <span style="font-size: 16px; color: var(--bvg-gray);">Visa, Mastercard, EC, Girocard</span>
+                        </div>
+                    </div>
+                    <div class="payment-btn" id="cash-payment" onclick="selectPayment('cash')">
+                        <div class="payment-icon">💶</div>
+                        <div>
+                            <strong style="font-size: 24px;">Cash</strong><br>
+                            <span style="font-size: 16px; color: var(--bvg-gray);">Coins & Banknotes (€5, €10, €20)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ERROR HANDLING -->
+                <div class="error-screen" id="payment-error" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <h3 style="color: var(--bvg-error); margin-bottom: 15px;">Payment Declined</h3>
+                    <p style="font-size: 18px; margin-bottom: 20px;">
+                        Your card was not accepted. This could be due to insufficient funds, 
+                        incorrect PIN, or technical issues.
+                    </p>
+                    <button class="btn btn-primary" onclick="retryPayment()" style="padding: 15px 30px;">
+                        <i class="fas fa-redo"></i>
+                        Try Another Payment Method
+                    </button>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToSummary()">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <button class="btn btn-primary" id="pay-button" onclick="processPayment()" disabled>
+                        <i class="fas fa-lock"></i>
+                        Pay Now
+                    </button>
+                </div>
+            </div>
+            
+            <!-- SCREEN 6: PROCESSING -->
+            <div class="screen" id="screen-processing">
+                <div class="processing">
+                    <div class="spinner"></div>
+                    <h2 class="screen-title" style="border: none; text-align: center;">
+                        <i class="fas fa-cog fa-spin"></i>
+                        Processing Payment
+                    </h2>
+                    <p style="font-size: 20px; color: var(--bvg-gray); margin-top: 20px; text-align: center;">
+                        Please wait while we process your payment...<br>
+                        <span style="font-size: 16px;">Do not remove your card or leave the kiosk.</span>
+                    </p>
+                    <div style="margin-top: 40px; color: var(--bvg-gray);">
+                        <i class="fas fa-info-circle"></i>
+                        This usually takes 10-20 seconds
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SCREEN 7: SUCCESS -->
+            <div class="screen" id="screen-success">
+                <div class="success-screen">
+                    <div class="success-icon">✅</div>
+                    <h2 class="screen-title" style="border: none; text-align: center;">
+                        Payment Successful!
+                    </h2>
+                    <p style="font-size: 22px; color: var(--bvg-gray); margin: 20px 0; text-align: center;">
+                        Your ticket has been issued and is ready for collection.
+                    </p>
+                    
+                    <div class="ticket-receipt">
+                        <h3 style="color: var(--bvg-dark); margin-bottom: 20px; text-align: center;">
+                            <i class="fas fa-receipt"></i>
+                            Ticket Receipt
+                        </h3>
+                        <div style="text-align: left; line-height: 2;">
+                            <div><strong>Ticket Type:</strong> <span id="success-ticket-type">Single Ticket</span></div>
+                            <div><strong>Zone:</strong> <span id="success-zone">AB</span></div>
+                            <div><strong>Price:</strong> <span id="success-ticket-price">€3.80</span></div>
+                            <div><strong>Valid:</strong> <span id="success-validity">Until 23:59 today</span></div>
+                            <div><strong>Purchase Time:</strong> <span id="purchase-time">Now</span></div>
+                            <div><strong>Ticket ID:</strong> <span style="font-family: monospace;">BVG-2024-3874921</span></div>
+                        </div>
+                    </div>
+                    
+                    <p style="color: var(--bvg-gray); margin-top: 30px; font-size: 18px; text-align: center;">
+                        <i class="fas fa-print"></i>
+                        Please collect your ticket from the slot below.
+                    </p>
+                    
+                    <div class="action-buttons" style="margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="resetKiosk()" style="padding: 20px 40px;">
+                            <i class="fas fa-redo"></i>
+                            Buy Another Ticket
+                        </button>
+                    </div>
+                    
+                    <p style="color: var(--bvg-gray); margin-top: 30px; font-size: 16px;">
+                        Returning to start screen in <span id="countdown" style="font-weight: bold;">10</span> seconds...
+                    </p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // STATE MANAGEMENT
+        let state = {
+            language: 'EN',
+            zone: null,
+            ticket: null,
+            hasBicycle: false,
+            paymentMethod: null,
+            price: 0
+        };
+        
+        // PRICE CONFIGURATION
+        const prices = {
+            zone: {
+                'AB': { single: 3.80, day: 9.90 },
+                'BC': { single: 4.40, day: 10.40 },
+                'ABC': { single: 4.80, day: 11.20 }
+            },
+            ticket: {
+                'single': 0, // calculated from zone
+                'short': 2.60,
+                'day': 0, // calculated from zone
+                'extension': 2.30
+            },
+            bicycle: 2.20
+        };
+        
+        // LANGUAGE NAMES
+        const languageNames = {
+            'DE': 'DEUTSCH',
+            'EN': 'ENGLISH', 
+            'PL': 'POLSKI',
+            'ES': 'ESPAÑOL',
+            'FR': 'FRANÇAIS',
+            'TR': 'TÜRKÇE'
+        };
+        
+        // TICKET VALIDITY
+        const ticketValidity = {
+            'single': '2 hours, one direction',
+            'short': '20 minutes, up to 3 stations',
+            'day': 'Until 3 AM next day',
+            'extension': 'Same as base ticket'
+        };
+        
+        // SCREEN NAVIGATION
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show target screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update progress steps
+            updateProgressSteps(screenId);
+        }
+        
+        function updateProgressSteps(screenId) {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach(step => step.classList.remove('active'));
+            
+            switch(screenId) {
+                case 'screen-language':
+                    document.getElementById('step1').classList.add('active');
+                    break;
+                case 'screen-zone':
+                    document.getElementById('step2').classList.add('active');
+                    break;
+                case 'screen-ticket':
+                    document.getElementById('step3').classList.add('active');
+                    break;
+                case 'screen-summary':
+                    document.getElementById('step4').classList.add('active');
+                    break;
+                case 'screen-payment':
+                case 'screen-processing':
+                case 'screen-success':
+                    document.getElementById('step5').classList.add('active');
+                    break;
+            }
+        }
+        
+        // LANGUAGE SELECTION
+        function selectLanguage(lang) {
+            state.language = lang;
+            document.getElementById('current-language').textContent = languageNames[lang];
+            document.getElementById('current-language-display').textContent = lang;
+            document.getElementById('language-continue').disabled = false;
+        }
+        
+        function goToZone() {
+            if (!state.language) {
+                alert('Please select a language first');
+                return;
+            }
+            showScreen('screen-zone');
+        }
+        
+        function goToLanguage() {
+            showScreen('screen-language');
+        }
+        
+        // ZONE SELECTION
+        function selectZone(zone) {
+            state.zone = zone;
+            
+            // Update UI
+            document.querySelectorAll('.zone-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Update display
+            document.getElementById('current-zone-display').textContent = zone;
+            
+            // Update prices
+            document.getElementById('price-single').textContent = `€${prices.zone[zone].single.toFixed(2)}`;
+            document.getElementById('price-day').textContent = `€${prices.zone[zone].day.toFixed(2)}`;
+            
+            // Enable continue button
+            document.getElementById('zone-continue-btn').disabled = false;
+        }
+        
+        function goToTicket() {
+            if (!state.zone) {
+                alert('Please select a zone first');
+                return;
+            }
+            showScreen('screen-ticket');
+        }
+        
+        // TICKET SELECTION
+        function selectTicket(ticketType) {
+            state.ticket = ticketType;
+            
+            // Update UI
+            document.querySelectorAll('.ticket-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Enable continue button
+            document.getElementById('ticket-continue-btn').disabled = false;
+        }
+        
+        function toggleBicycle() {
+            state.hasBicycle = !state.hasBicycle;
+            const btn = document.getElementById('bicycle-btn');
+            if (state.hasBicycle) {
+                btn.innerHTML = '<i class="fas fa-minus"></i> Remove Bicycle';
+                btn.style.background = '#FFCC00';
+            } else {
+                btn.innerHTML = '<i class="fas fa-plus"></i> Add Bicycle';
+                btn.style.background = '';
+            }
+        }
+        
+        function goToSummary() {
+            if (!state.ticket) {
+                alert('Please select a ticket type first');
+                return;
+            }
+            
+            // Calculate price
+            let basePrice = 0;
+            if (state.ticket === 'single') {
+                basePrice = prices.zone[state.zone].single;
+            } else if (state.ticket === 'day') {
+                basePrice = prices.zone[state.zone].day;
+            } else {
+                basePrice = prices.ticket[state.ticket];
+            }
+            
+            if (state.hasBicycle) {
+                basePrice += prices.bicycle;
+            }
+            
+            state.price = basePrice;
+            
+            // Update summary screen
+            document.getElementById('summary-ticket-type').textContent = 
+                state.ticket.charAt(0).toUpperCase() + state.ticket.slice(1) + ' Ticket';
+            document.getElementById('summary-zone').textContent = state.zone;
+            document.getElementById('summary-base-price').textContent = `€${basePrice.toFixed(2)}`;
+            document.getElementById('summary-validity').textContent = ticketValidity[state.ticket];
+            
+            // Show/hide bicycle row
+            const bicycleRow = document.getElementById('bicycle-summary-row');
+            if (state.hasBicycle) {
+                bicycleRow.style.display = 'flex';
+                document.getElementById('summary-total').textContent = `€${basePrice.toFixed(2)}`;
+            } else {
+                bicycleRow.style.display = 'none';
+                document.getElementById('summary-total').textContent = `€${(basePrice - prices.bicycle).toFixed(2)}`;
+            }
+            
+            document.getElementById('payment-total').textContent = `€${basePrice.toFixed(2)}`;
+            
+            showScreen('screen-summary');
+        }
+        
+        function goToPayment() {
+            showScreen('screen-payment');
+        }
+        
+        // PAYMENT SELECTION
+        function selectPayment(method) {
+            state.paymentMethod = method;
+            
+            // Update UI
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById(method + '-payment').classList.add('selected');
+            
+            // Enable pay button
+            document.getElementById('pay-button').disabled = false;
+        }
+        
+        function processPayment() {
+            if (!state.paymentMethod) {
+                alert('Please select a payment method first');
+                return;
+            }
+            
+            // Hide error if shown
+            document.getElementById('payment-error').style.display = 'none';
+            
+            showScreen('screen-processing');
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                // 20% chance of error for demo
+                if (Math.random() < 0.2) {
+                    showScreen('screen-payment');
+                    document.getElementById('payment-error').style.display = 'block';
+                    return;
+                }
+                
+                // Update success screen
+                const ticketName = state.ticket.charAt(0).toUpperCase() + state.ticket.slice(1);
+                document.getElementById('success-ticket-type').textContent = `${ticketName} Ticket`;
+                document.getElementById('success-zone').textContent = state.zone;
+                document.getElementById('success-ticket-price').textContent = `€${state.price.toFixed(2)}`;
+                document.getElementById('success-validity').textContent = ticketValidity[state.ticket];
+                
+                // Set purchase time
+                const now = new Date();
+                document.getElementById('purchase-time').textContent = 
+                    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                showScreen('screen-success');
+                startAutoReturn();
+            }, 3000);
+        }
+        
+        function retryPayment() {
+            document.getElementById('payment-error').style.display = 'none';
+            state.paymentMethod = null;
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById('pay-button').disabled = true;
+        }
+        
+        // AUTO RETURN
+        function startAutoReturn() {
+            let count = 10;
+            const countdownElement = document.getElementById('countdown');
+            const interval = setInterval(() => {
+                count--;
+                countdownElement.textContent = count;
+                if (count <= 0) {
+                    clearInterval(interval);
+                    resetKiosk();
+                }
+            }, 1000);
+        }
+        
+        // RESET KIOSK
+        function resetKiosk() {
+            // Reset state
+            state = {
+                language: 'EN',
+                zone: null,
+                ticket: null,
+                hasBicycle: false,
+                paymentMethod: null,
+                price: 0
+            };
+            
+            // Reset UI
+            document.querySelectorAll('.zone-card, .ticket-card, .payment-btn').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            document.getElementById('language-continue').disabled = true;
+            document.getElementById('zone-continue-btn').disabled = true;
+            document.getElementById('ticket-continue-btn').disabled = true;
+            document.getElementById('pay-button').disabled = true;
+            
+            // Reset bicycle button
+            const bicycleBtn = document.getElementById('bicycle-btn');
+            bicycleBtn.innerHTML = '<i class="fas fa-plus"></i> Add Bicycle';
+            bicycleBtn.style.background = '';
+            
+            // Hide error
+            document.getElementById('payment-error').style.display = 'none';
+            
+            // Go to start
+            showScreen('screen-language');
+        }
+        
+        // INITIALIZE
+        document.addEventListener('DOMContentLoaded', () => {
+            showScreen('screen-language');
+            
+            // Add some demo data
+            const now = new Date();
+            document.getElementById('purchase-time').textContent = 
+                `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        });
+    </script>
+</body>
+</html>
