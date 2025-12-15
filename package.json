@@ -1,0 +1,8 @@
+{
+  "name": "bvg-kiosk-demo",
+  "version": "1.0.0",
+  "description": "BVG Ticket Kiosk Redesign - University Project",
+  "scripts": {
+    "dev": "echo 'Open index.html in browser'"
+  }
+}
